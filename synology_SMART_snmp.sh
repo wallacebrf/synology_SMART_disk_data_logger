@@ -1,4 +1,6 @@
 #!/bin/bash
+#version 2.0 dated 2/1/2022
+#By Brian Wallace
 
 #This script pulls various information from the Synology NAS
 #add this script to a scheduled task within synology's task scheduler
