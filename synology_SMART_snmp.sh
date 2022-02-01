@@ -336,7 +336,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 					else
 						echo "could not send notification email as MailPlus Server is unavailable"
 					fi
-					if [[ $debug ==1 ]]; then
+					if [[ $debug == 1 ]]; then
 						echo "SMART data for disk \"$disk_path\":"
 						echo "$disk_SMART_attribute_name: ID: $disk_SMART_attribute_ID || Current Value: $disk_SMART_attribute_current || Worst Value: $disk_SMART_attribute_worst || Threshold: $disk_SMART_attribute_threshold || RAW Value: $disk_SMART_attribute_raw || Status: $disk_SMART_attribute_status" 
 					fi
@@ -390,4 +390,3 @@ if [ -r $config_file_location/$config_file_name ]; then
 else
 	echo "Configuration file is missing"
 fi
-
