@@ -12,6 +12,29 @@ config_file_name="smart_logging_config.txt"
 debug=0
 
 
+
+#for my personal use as i have multiple synology systems, these lines can be deleted by other users
+######################################################################################
+sever_type=1 #1=server2, 2=serverNVR, 3=serverplex
+
+if [[ $sever_type == 1 ]]; then
+	config_file_location="/volume1/web/config/config_files/config_files_local"
+	config_file_name="smart_logging_config.txt"
+fi
+
+if [[ $sever_type == 2 ]]; then
+	config_file_location="/volume1/web/logging"
+	config_file_name="smart_logging_config.txt"
+fi
+
+if [[ $sever_type == 3 ]]; then
+	config_file_location="/volume1/web/config/config_files/config_files_local"
+	config_file_name="smart_logging_config.txt"
+fi
+
+######################################################################################
+
+
 #check if config_file_location directory exists
 if [ ! -d $config_file_location ] ; then
 	#directory does not exist, let's create it
