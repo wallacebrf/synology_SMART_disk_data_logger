@@ -9,6 +9,7 @@
 #if a different directory is desired, change these variables accordingly
 config_file_location="/volume1/web/config/config_files/config_files_local"
 config_file_name="smart_logging_config.txt"
+from_email_address="admin@admin.com"
 debug=0
 
 
@@ -297,7 +298,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 								if [ $disk_SMART_attribute_raw -gt $paramter_1_notification_threshold ]; then
 									echo "$disk_SMART_attribute_name has exceeded its threshold value of $paramter_1_notification_threshold on disk $disk_path, sending email"
 									mailbody="Warning SMART Attribute $disk_SMART_attribute_name on disk $disk_path on $nas_name has exceed the threshold value of $paramter_1_notification_threshold. It currently is reporting a value of $disk_SMART_attribute_raw"
-									echo "from: $email_address " > $config_file_location/email_notification.txt
+									echo "from: $from_email_address " > $config_file_location/email_notification.txt
 									echo "to: $email_address " >> $config_file_location/email_notification.txt
 									echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 									echo "" >> $config_file_location/email_notification.txt
@@ -310,7 +311,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 								if [ $disk_SMART_attribute_raw -gt $paramter_2_notification_threshold ]; then
 									echo "$disk_SMART_attribute_name has exceeded its threshold value of $paramter_2_notification_threshold on disk $disk_path, sending email"
 									mailbody="Warning SMART Attribute $disk_SMART_attribute_name on disk $disk_path on $nas_name has exceed the threshold value of $paramter_2_notification_threshold. It currently is reporting a value of $disk_SMART_attribute_raw"
-									echo "from: $email_address " > $config_file_location/email_notification.txt
+									echo "from: $from_email_address " > $config_file_location/email_notification.txt
 									echo "to: $email_address " >> $config_file_location/email_notification.txt
 									echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 									echo "" >> $config_file_location/email_notification.txt
@@ -323,7 +324,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 								if [ $disk_SMART_attribute_raw -gt $paramter_3_notification_threshold ]; then
 									echo "$disk_SMART_attribute_name has exceeded its threshold value of $paramter_3_notification_threshold on disk $disk_path, sending email"
 									mailbody="Warning SMART Attribute $disk_SMART_attribute_name on disk $disk_path on $nas_name has exceed the threshold value of $paramter_3_notification_threshold. It currently is reporting a value of $disk_SMART_attribute_raw"
-									echo "from: $email_address " > $config_file_location/email_notification.txt
+									echo "from: $from_email_address " > $config_file_location/email_notification.txt
 									echo "to: $email_address " >> $config_file_location/email_notification.txt
 									echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 									echo "" >> $config_file_location/email_notification.txt
@@ -336,7 +337,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 								if [ $disk_SMART_attribute_raw -gt $paramter_4_notification_threshold ]; then
 									echo "$disk_SMART_attribute_name has exceeded its threshold value of $paramter_4_notification_threshold on disk $disk_path, sending email"
 									mailbody="Warning SMART Attribute $disk_SMART_attribute_name on disk $disk_path on $nas_name has exceed the threshold value of $paramter_4_notification_threshold. It currently is reporting a value of $disk_SMART_attribute_raw"
-									echo "from: $email_address " > $config_file_location/email_notification.txt
+									echo "from: $from_email_address " > $config_file_location/email_notification.txt
 									echo "to: $email_address " >> $config_file_location/email_notification.txt
 									echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 									echo "" >> $config_file_location/email_notification.txt
@@ -349,7 +350,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 								if [ $disk_SMART_attribute_raw -gt $paramter_5_notification_threshold ]; then
 									echo "$disk_SMART_attribute_name has exceeded its threshold value of $paramter_5_notification_threshold on disk $disk_path, sending email"
 									mailbody="Warning SMART Attribute $disk_SMART_attribute_name on disk $disk_path on $nas_name has exceed the threshold value of $paramter_5_notification_threshold. It currently is reporting a value of $disk_SMART_attribute_raw"
-									echo "from: $email_address " > $config_file_location/email_notification.txt
+									echo "from: $from_email_address " > $config_file_location/email_notification.txt
 									echo "to: $email_address " >> $config_file_location/email_notification.txt
 									echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 									echo "" >> $config_file_location/email_notification.txt
@@ -375,7 +376,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 					
 					echo "$Warning $disk_path overall SMART status is not \"OK\", sending email"
 					mailbody="Warning SMART on disk $disk_path on $nas_name is no longer reporting \"OK\" Status"
-					echo "from: $email_address " > $config_file_location/email_notification.txt
+					echo "from: $from_email_address " > $config_file_location/email_notification.txt
 					echo "to: $email_address " >> $config_file_location/email_notification.txt
 					echo "subject: $disk_path SMART ALERT for $nas_name " >> $config_file_location/email_notification.txt
 					echo "" >> $config_file_location/email_notification.txt
