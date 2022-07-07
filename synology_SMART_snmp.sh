@@ -1,5 +1,5 @@
 #!/bin/bash
-#version 2.0 dated 2/1/2022
+#version 3.0 dated 4/9/2022
 #By Brian Wallace
 
 #This script pulls various information from the Synology NAS
@@ -9,7 +9,6 @@
 #if a different directory is desired, change these variables accordingly
 config_file_location="/volume1/web/config/config_files/config_files_local"
 config_file_name="smart_logging_config.txt"
-from_email_address="admin@admin.com"
 debug=0
 
 
@@ -35,58 +34,6 @@ fi
 
 ######################################################################################
 
-
-#check if config_file_location directory exists
-if [ ! -d $config_file_location ] ; then
-	#directory does not exist, let's create it
-	echo "directory $config_file_location did not exist, directory will now be created"
-	mkdir -p $config_file_location
-fi
-
-#check to see if configuration file exists
-if [ ! -r $config_file_location/$config_file_name ]; then
-	#file is missing, let's create it and store default values into it. after it is created, the script will exit the first run and the configuration file can be edited as required. 
-	#NOTE: when editing the file, ensure the parameter value remains within the quotes
-	echo "
-	SNMP_user:\"username\"
-	capture_interval:\"60\"
-	nas_url:\"localhost\"
-	nas_name:\"\"
-	ups_group:\"NAS\"
-	influxdb_host:\"localhost\"
-	influxdb_port:\"8086\"
-	influxdb_name:\"db_name\"
-	influxdb_user:\"db_user\"
-	influxdb_pass:\"db_password\"
-	script_enable:\"1\"
-	AuthPass1:\"SNMP_auth_passord\"
-	PrivPass2:\"SNMP_privacy_passord\"
-	influx_db_version:\"2\"
-	influxdb_org:\"org\"
-	enable_email_notifications:\"0\"
-	email_address:\"admin@domain.com\"
-	paramter_1_name:\"Reallocated_Sector_Ct\"
-	paramter_1_notification_threshold:\"1\"
-	paramter_2_name:\"Seek_Error_Rate\"
-	paramter_2_notification_threshold:\"1\"
-	paramter_3_name:\"Temperature_Celsius\"
-	paramter_3_notification_threshold:\"1\"
-	paramter_4_name:\"Spin_Retry_Count\"
-	paramter_4_notification_threshold:\"1\"
-	paramter_5_name:\"UDMA_CRC_Error_Count\"
-	paramter_5_notification_threshold:\"1\"
-	" |& tee $config_file_location/$config_file_name
-	#check to make sure it was created correctly
-	
-	if [ ! -r $config_file_location/$config_file_name ]; then
-		echo "configuration file creation failed"
-		exit
-	else
-		echo "configuration file successfully created, exiting script. Please configure settings as required before running the script again"
-		exit
-	fi
-fi
-
 #create a lock file in the configuration directory to prevent more than one instance of this script from executing  at once
 if ! mkdir $config_file_location/synology_smart_snmp.lock; then
 	echo "Failed to acquire lock.\n" >&2
@@ -94,77 +41,77 @@ if ! mkdir $config_file_location/synology_smart_snmp.lock; then
 fi
 trap 'rm -rf $config_file_location/synology_smart_snmp.lock' EXIT #remove the lockdir on exit
 
-#reading in variables from configuration file
-	#SNMP_user									#what user name is used for the SNMP version 3.0 config
-	#capture_interval							#[seconds] how often is the script going to collect data? suggested is 60 so script collects data once when executed. 
-	#nas_url	  								#IP of the synology NAS the script will gather SMART data from using SNMP
-	#nas_name									#name of the synology NAS. if this is not set, the script will gather the name from the NAS itself	
-	#ups_group									#currently unused
-	#influxdb_host								#IP of the influxDB destination server
-	#influxdb_port								#port of Influxdb
-	#influxdb_name								#name of the influxdb database. Note: if using influxdb version 1.x.x this will be something like "SMART_DATA" but if using influxdb 2.x.x this will be the randomly generated string of characters influxdb generates for each data bucket identification.		
-	#influxdb_user								#user name to log into influxdb. Note: this is only needed for influxdb version 1.x.x
-	#influxdb_pass								#password to log into influxdb. Note: if using influxdb version 1.x.x this will be something like "my_passord" but if using influxdb 2.x.x this will be the API key / "Token" that must be generated within influxdb 2.x.x
-	#script_enable								#is the script enabled or disabled? 1=enabled, 0=disabled. 
-	#AuthPass1									#SNMP Authorization password. NOTE: this script is configured to use SNMP version 3 using MD5 for authorization and AES for privacy. ensure the synology NAS is configured accordingly
-	#PrivPass2									#SNMP privacy password. NOTE: this script is configured to use SNMP version 3 using MD5 for authorization and AES for privacy. ensure the synology NAS is configured accordingly
-	#influx_db_version							#set to a value of 1 if using influxdb earlier than version 2.0. set to a value of 2 if using influxdb version 2.0 or higher. 
-	#influxdb_org								#only needed for influxdb version 2.0 and higher
-	#enable_email_notifications					#enable the ability of this script to send emails alerting if things are past certain set points. NOTE: this ability requires synology "Synology MailPlus Server" installed on the system and properly configured. NOTE 2: if multiple drives report data that meets the set point values, separate emails will be sent per drive
-	#email_address								#what email address should the alerts be sent to?
-	
-	#note: due to different drives reporting different SMART details, this script allows for notifications of five different parameters if they exceed a desired set point. 
-	#	   the different paramter_x_name variables must be set to the name of the desired parameter as reported by the system
-	#      the different paramter_x_notification_threshold values can be configured as desired to receive a notification. NOTE: until the issue is corrected, or the threshold value is changed, an email will be sent each time this script executes
-	
-	#paramter_1_name							#name of first parameter to monitor. this must be exactly as reported by the system for example "Seek_Error_Rate" must include the underscores
-	#paramter_1_notification_threshold			#value where the notification will be sent
-	#paramter_2_name
-	#paramter_2_notification_threshold
-	#paramter_3_name
-	#paramter_3_notification_threshold
-	#paramter_4_name
-	#paramter_4_notification_threshold
-	#paramter_5_name
-	#paramter_5_notification_threshold
-	
+
 if [ -r $config_file_location/$config_file_name ]; then
 	#file is available and readable 
 	
 	#read in file
 	input_read=$(<$config_file_location/$config_file_name)
 	#explode the configuration into an array with the colon as the delimiter
-	explode=(`echo $input_read | sed 's/:/\n/g'`)
+	explode=(`echo $input_read | sed 's/,/\n/g'`)
 	#save the parameter values into the respective variable and remove the quotes
-	SNMP_user=${explode[1]//\"}
-	capture_interval=${explode[3]//\"}
-	nas_url=${explode[5]//\"}
-	nas_name=${explode[7]//\"}
-	ups_group=${explode[9]//\"}
-	influxdb_host=${explode[11]//\"}
-	influxdb_port=${explode[13]//\"}
-	influxdb_name=${explode[15]//\"}
-	influxdb_user=${explode[17]//\"}
-	influxdb_pass=${explode[19]//\"}
-	script_enable=${explode[21]//\"}
-	AuthPass1=${explode[23]//\"}
-	PrivPass2=${explode[25]//\"}
-	influx_db_version=${explode[27]//\"}
-	influxdb_org=${explode[29]//\"}
-	enable_email_notifications=${explode[31]//\"}
-	email_address=${explode[33]//\"}
-	paramter_1_name=${explode[35]//\"}
-	paramter_1_notification_threshold=${explode[37]//\"}
-	paramter_2_name=${explode[39]//\"}
-	paramter_2_notification_threshold=${explode[41]//\"}
-	paramter_3_name=${explode[43]//\"}
-	paramter_3_notification_threshold=${explode[45]//\"}
-	paramter_4_name=${explode[47]//\"}
-	paramter_4_notification_threshold=${explode[49]//\"}
-	paramter_5_name=${explode[51]//\"}
-	paramter_5_notification_threshold=${explode[53]//\"}
+	SNMP_user=${explode[0]}
+	capture_interval=${explode[1]}
+	nas_url=${explode[2]}
+	nas_name=${explode[3]}
+	ups_group=${explode[4]}
+	influxdb_host=${explode[5]}
+	influxdb_port=${explode[6]}
+	influxdb_name=${explode[7]}
+	influxdb_user=${explode[8]}
+	influxdb_pass=${explode[9]}
+	script_enable=${explode[10]}
+	AuthPass1=${explode[11]}
+	PrivPass2=${explode[12]}
+	influx_db_version=${explode[13]}
+	influxdb_org=${explode[14]}
+	enable_email_notifications=${explode[15]}
+	email_address=${explode[16]}
+	paramter_1_name=${explode[17]}
+	paramter_1_notification_threshold=${explode[18]}
+	paramter_2_name=${explode[19]}
+	paramter_2_notification_threshold=${explode[20]}
+	paramter_3_name=${explode[21]}
+	paramter_3_notification_threshold=${explode[22]}
+	paramter_4_name=${explode[23]}
+	paramter_4_notification_threshold=${explode[24]}
+	paramter_5_name=${explode[25]}
+	paramter_5_notification_threshold=${explode[26]}
+	from_email_address=${explode[27]}
+	snmp_auth_protocol=${explode[28]}
+	snmp_privacy_protocol=${explode[29]}
 	
-	
+	#echo "SNMP_user is $SNMP_user"
+	#echo "capture_interval is $capture_interval"
+	#echo "nas_url is $SNMP_user"
+	#echo "nas_name is $nas_name"
+	#echo "ups_group is $ups_group"
+	#echo "influxdb_host is $influxdb_host"
+	#echo "influxdb_port is $influxdb_port"
+	#echo "influxdb_name is $influxdb_name"
+	#echo "influxdb_user is $influxdb_user"
+	#echo "influxdb_pass is $influxdb_pass"
+	#echo "script_enable is $script_enable"
+	#echo "AuthPass1 is $AuthPass1"
+	#echo "PrivPass2 is $PrivPass2"
+	#echo "influx_db_version is $influx_db_version"
+	#echo "influxdb_org is $influxdb_org"
+	#echo "enable_email_notifications is $enable_email_notifications"
+	#echo "email_address is $email_address"
+	#echo "paramter_1_name is $paramter_1_name"
+	#echo "paramter_1_notification_threshold is $paramter_1_notification_threshold"
+	#echo "paramter_2_name is $paramter_2_name"
+	#echo "paramter_2_notification_threshold is $paramter_2_notification_threshold"
+	#echo "paramter_3_name is $paramter_3_name"
+	#echo "paramter_3_notification_threshold is $paramter_3_notification_threshold"
+	#echo "paramter_4_name is $paramter_4_name"
+	#echo "paramter_4_notification_threshold is $paramter_4_notification_threshold"
+	#echo "paramter_5_name is $paramter_5_name"
+	#echo "paramter_5_notification_threshold is $paramter_5_notification_threshold"
+	#echo "from_email_address is $from_email_address"
+	#echo "snmp_auth_protocol is $snmp_auth_protocol"
+	#echo "snmp_privacy_protocol is $snmp_privacy_protocol"
+
 	if [ $script_enable -eq 1 ]
 	then
 		#confirm that the synology SNMP settings were configured otherwise exit script
@@ -209,9 +156,7 @@ if [ -r $config_file_location/$config_file_name ]; then
 		
 		
 		# Getting NAS hostname from NAS if it was not manually set in the configuration settings
-		if [[ -z $nas_name ]]; then
 			nas_name=`snmpwalk -v3 -l authPriv -u $SNMP_user -a MD5 -A $AuthPass1 -x AES -X $PrivPass2 $nas_url:161 SNMPv2-MIB::sysName.0 -Ovqt`
-		fi
 
 		#loop the script. determine the number of times the script will execute per minute based on value of capture interval
 		total_executions=$(( 60 / $capture_interval))
@@ -391,9 +336,12 @@ if [ -r $config_file_location/$config_file_name ]; then
 			#Post to influxdb
 			if [[ $influx_db_version == 1 ]]; then
 				#if using influxdb version 1.x.x
+				echo "saving using influx version 1"
 				curl -i -XPOST "http://$influxdb_host:$influxdb_port/write?u=$influxdb_user&p=$influxdb_pass&db=$influxdb_name" --data-binary "$post_url"
 			else
 				#if using influxdb version 2.x.x
+				echo "saving using influx version 2"
+				#echo "-XPOST \"http://$influxdb_host:$influxdb_port/api/v2/write?bucket=$influxdb_name&org=$influxdb_org\" -H \"Authorization: Token $influxdb_pass\" --data-raw \"post_url\""
 				curl -XPOST "http://$influxdb_host:$influxdb_port/api/v2/write?bucket=$influxdb_name&org=$influxdb_org" -H "Authorization: Token $influxdb_pass" --data-raw "$post_url"
 			fi
 			
