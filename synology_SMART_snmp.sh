@@ -1,5 +1,5 @@
 #!/bin/bash
-#version 4.2 dated 1/18/2023
+#version 4.3 dated 3/18/2023
 #By Brian Wallace
 
 #This script pulls various information from the Synology NAS
@@ -8,18 +8,18 @@
 #############################################
 #VERIFICATIONS
 #############################################
-#1.) data is collected into influx properly....................................................................................... VERIFIED 1/18/2023
+#1.) data is collected into influx properly....................................................................................... VERIFIED 3/18/2023
 #2.) SNMP errors:
-	#a.) bad SNMP user name causes script to shutdown with email.................................................................. VERIFIED 1/18/2023
-	#b.) bad SNMP authpass causes script to shutdown with email................................................................... VERIFIED 1/18/2023
-	#c.) bad SNMP privacy pass causes script to shutdown with email............................................................... VERIFIED 1/18/2023
-	#d.) bad SNMP ip address causes script to shutdown with email................................................................. VERIFIED 1/18/2023
-	#e.) bad SNMP port causes script to shutdown with email....................................................................... VERIFIED 1/18/2023
-	#f.) error emails a through e above only are sent within the allowed time interval............................................ VERIFIED 1/18/2023
-#3.) verify that when "sendmail" is unavailable due, emails are not sent, and the appropriate warnings are displayed.............. VERIFIED 1/18/2023
-#4.) verify script behavior when config file is unavailable....................................................................... VERIFIED 1/18/2023
-#5.) verify script behavior when config file has wrong number of arguments........................................................ VERIFIED 1/18/2023
-#6.) Verify emails are sent when SMART parameters are above their configured threshold............................................ VERIFIED 1/18/2023
+	#a.) bad SNMP user name causes script to shutdown with email.................................................................. VERIFIED 3/18/2023
+	#b.) bad SNMP authpass causes script to shutdown with email................................................................... VERIFIED 3/18/2023
+	#c.) bad SNMP privacy pass causes script to shutdown with email............................................................... VERIFIED 3/18/2023
+	#d.) bad SNMP ip address causes script to shutdown with email................................................................. VERIFIED 3/18/2023
+	#e.) bad SNMP port causes script to shutdown with email....................................................................... VERIFIED 3/18/2023
+	#f.) error emails a through e above only are sent within the allowed time interval............................................ VERIFIED 3/18/2023
+#3.) verify that when "sendmail" is unavailable due, emails are not sent, and the appropriate warnings are displayed.............. VERIFIED 3/18/2023
+#4.) verify script behavior when config file is unavailable....................................................................... VERIFIED 3/18/2023
+#5.) verify script behavior when config file has wrong number of arguments........................................................ VERIFIED 3/18/2023
+#6.) Verify emails are sent when SMART parameters are above, below, or equal to their configured threshold........................ VERIFIED 3/18/2023
 
 
 #suggest to install the script in Synology web directory on volume1 at /volume1/web/logging/
@@ -34,7 +34,7 @@ debug=0
 #EMAIL SETTINGS USED IF CONFIGURATION FILE IS UNAVAILABLE
 #These variables will be overwritten with new corrected data if the configuration file loads properly. 
 email_address="email@email.com"
-from_email_address="from@email.com"
+from_email_address="email@email.com"
 #########################################################
 
 
@@ -164,6 +164,9 @@ if [ -r $config_file_location/$config_file_name ]; then
 		echo "WARNING - the configuration file is incorrect or corrupted. It should have 80 parameters, it currently has ${#explode[@]} parameters."
 		exit 1
 	fi	
+	paramter_name=()
+	paramter_notification_threshold=()
+	paramter_type=()
 	
 	#save the parameter values into the respective variable and remove the quotes
 	SNMP_user=${explode[0]}
@@ -183,69 +186,69 @@ if [ -r $config_file_location/$config_file_name ]; then
 	influxdb_org=${explode[14]}
 	enable_email_notifications=${explode[15]}
 	email_address=${explode[16]}
-	paramter_1_name=${explode[17]}
-	paramter_1_notification_threshold=${explode[18]}
-	paramter_2_name=${explode[19]}
-	paramter_2_notification_threshold=${explode[20]}
-	paramter_3_name=${explode[21]}
-	paramter_3_notification_threshold=${explode[22]}
-	paramter_4_name=${explode[23]}
-	paramter_4_notification_threshold=${explode[24]}
-	paramter_5_name=${explode[25]}
-	paramter_5_notification_threshold=${explode[26]}
+	paramter_name+=(${explode[17]})
+	paramter_notification_threshold+=(${explode[18]})
+	paramter_name+=(${explode[19]})
+	paramter_notification_threshold+=(${explode[20]})
+	paramter_name+=(${explode[21]})
+	paramter_notification_threshold+=(${explode[22]})
+	paramter_name+=(${explode[23]})
+	paramter_notification_threshold+=(${explode[24]})
+	paramter_name+=(${explode[25]})
+	paramter_notification_threshold+=(${explode[26]})
 	from_email_address=${explode[27]}
 	snmp_auth_protocol=${explode[28]}
 	snmp_privacy_protocol=${explode[29]}
-	paramter_1_type=${explode[30]}
-	paramter_2_type=${explode[31]}
-	paramter_3_type=${explode[32]}
-	paramter_4_type=${explode[33]}
-	paramter_5_type=${explode[34]}
-	paramter_6_type=${explode[35]}
-	paramter_7_type=${explode[36]}
-	paramter_8_type=${explode[37]}
-	paramter_9_type=${explode[38]}
-	paramter_10_type=${explode[39]}
-	paramter_11_type=${explode[40]}
-	paramter_12_type=${explode[41]}
-	paramter_13_type=${explode[42]}
-	paramter_14_type=${explode[43]}
-	paramter_15_type=${explode[44]}
-	paramter_16_type=${explode[45]}
-	paramter_17_type=${explode[46]}
-	paramter_18_type=${explode[47]}
-	paramter_19_type=${explode[48]}
-	paramter_20_type=${explode[49]}
-	paramter_6_name=${explode[50]}
-	paramter_6_notification_threshold=${explode[51]}
-	paramter_7_name=${explode[52]}
-	paramter_7_notification_threshold=${explode[53]}
-	paramter_8_name=${explode[54]}
-	paramter_8_notification_threshold=${explode[55]}
-	paramter_9_name=${explode[56]}
-	paramter_9_notification_threshold=${explode[57]}
-	paramter_10_name=${explode[58]}
-	paramter_10_notification_threshold=${explode[59]}
-	paramter_11_name=${explode[60]}
-	paramter_11_notification_threshold=${explode[61]}
-	paramter_12_name=${explode[62]}
-	paramter_12_notification_threshold=${explode[63]}
-	paramter_13_name=${explode[64]}
-	paramter_13_notification_threshold=${explode[65]}
-	paramter_14_name=${explode[66]}
-	paramter_14_notification_threshold=${explode[67]}
-	paramter_15_name=${explode[68]}
-	paramter_15_notification_threshold=${explode[69]}
-	paramter_16_name=${explode[70]}
-	paramter_16_notification_threshold=${explode[71]}
-	paramter_17_name=${explode[72]}
-	paramter_17_notification_threshold=${explode[73]}
-	paramter_18_name=${explode[74]}
-	paramter_18_notification_threshold=${explode[75]}
-	paramter_19_name=${explode[76]}
-	paramter_19_notification_threshold=${explode[77]}
-	paramter_20_name=${explode[78]}
-	paramter_20_notification_threshold=${explode[79]}
+	paramter_type+=(${explode[30]})
+	paramter_type+=(${explode[31]})
+	paramter_type+=(${explode[32]})
+	paramter_type+=(${explode[33]})
+	paramter_type+=(${explode[34]})
+	paramter_type+=(${explode[35]})
+	paramter_type+=(${explode[36]})
+	paramter_type+=(${explode[37]})
+	paramter_type+=(${explode[38]})
+	paramter_type+=(${explode[39]})
+	paramter_type+=(${explode[40]})
+	paramter_type+=(${explode[41]})
+	paramter_type+=(${explode[42]})
+	paramter_type+=(${explode[43]})
+	paramter_type+=(${explode[44]})
+	paramter_type+=(${explode[45]})
+	paramter_type+=(${explode[46]})
+	paramter_type+=(${explode[47]})
+	paramter_type+=(${explode[48]})
+	paramter_type+=(${explode[49]})
+	paramter_name+=(${explode[50]})
+	paramter_notification_threshold+=(${explode[51]})
+	paramter_name+=(${explode[52]})
+	paramter_notification_threshold+=(${explode[53]})
+	paramter_name+=(${explode[54]})
+	paramter_notification_threshold+=(${explode[55]})
+	paramter_name+=(${explode[56]})
+	paramter_notification_threshold+=(${explode[57]})
+	paramter_name+=(${explode[58]})
+	paramter_notification_threshold+=(${explode[59]})
+	paramter_name+=(${explode[60]})
+	paramter_notification_threshold+=(${explode[61]})
+	paramter_name+=(${explode[62]})
+	paramter_notification_threshold+=(${explode[63]})
+	paramter_name+=(${explode[64]})
+	paramter_notification_threshold+=(${explode[65]})
+	paramter_name+=(${explode[66]})
+	paramter_notification_threshold+=(${explode[67]})
+	paramter_name+=(${explode[68]})
+	paramter_notification_threshold+=(${explode[69]})
+	paramter_name+=(${explode[70]})
+	paramter_notification_threshold+=(${explode[71]})
+	paramter_name+=(${explode[72]})
+	paramter_notification_threshold+=(${explode[73]})
+	paramter_name+=(${explode[74]})
+	paramter_notification_threshold+=(${explode[75]})
+	paramter_name+=(${explode[76]})
+	paramter_notification_threshold+=(${explode[77]})
+	paramter_name+=(${explode[78]})
+	paramter_notification_threshold+=(${explode[79]})
 
 	if [ $script_enable -eq 1 ]
 	then
@@ -416,325 +419,24 @@ if [ -r $config_file_location/$config_file_name ]; then
 					#are email notifications enabled?
 					if [[ $sendmail_installed == 1 ]]; then
 						if [[ $enable_email_notifications == 1 ]]; then
-							if [[ $disk_SMART_attribute_name == $paramter_1_name ]]; then
-								if [[ $paramter_1_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_1_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_1_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_1_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_1_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_1_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_1_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_1_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_1_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_2_name ]]; then
-								if [[ $paramter_2_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_2_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_2_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_2_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_2_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_2_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_2_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_2_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_2_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
+							for attribute_counter in "${!paramter_name[@]}" 
+							do
+								if [[ $disk_SMART_attribute_name == ${paramter_name[$attribute_counter]} ]]; then
+									if [[ ${paramter_type[$attribute_counter]} == ">" ]]; then
+										if [ $disk_SMART_attribute_raw -gt ${paramter_notification_threshold[$attribute_counter]} ]; then
+											send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
+										fi
+									elif [[ ${paramter_type[$attribute_counter]} == "=" ]]; then
+										if [ $disk_SMART_attribute_raw -eq ${paramter_notification_threshold[$attribute_counter]} ]; then
+											send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
+										fi
+									elif [[ ${paramter_type[$attribute_counter]} == "<" ]]; then
+										if [ $disk_SMART_attribute_raw -lt ${paramter_notification_threshold[$attribute_counter]} ]; then
+											send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
+										fi
 									fi
 								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_3_name ]]; then
-								if [[ $paramter_3_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_3_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_3_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_3_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_3_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_3_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_3_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_3_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_3_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_4_name ]]; then
-								if [[ $paramter_4_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_4_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_4_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_4_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_4_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_4_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_4_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_4_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_4_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_5_name ]]; then
-								if [[ $paramter_5_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_5_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_5_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_5_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_5_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_5_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_5_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_5_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_5_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_6_name ]]; then
-								if [[ $paramter_6_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_6_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_6_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_6_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_6_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_6_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_6_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_6_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_6_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_7_name ]]; then
-								if [[ $paramter_7_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_7_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_7_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_7_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_7_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_7_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_7_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_7_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_7_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_8_name ]]; then
-								if [[ $paramter_8_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_8_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_8_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_8_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_8_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_8_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_8_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_8_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_8_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_9_name ]]; then
-								if [[ $paramter_9_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_9_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_9_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_9_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_9_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_9_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_9_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_9_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_9_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_10_name ]]; then
-								if [[ $paramter_10_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_10_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_10_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_10_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_10_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_10_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_10_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_10_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_10_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_11_name ]]; then
-								if [[ $paramter_11_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_11_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_11_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_11_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_11_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_11_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_11_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_11_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_11_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_12_name ]]; then
-								if [[ $paramter_12_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_12_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_12_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_12_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_12_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_12_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_12_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_12_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_12_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_13_name ]]; then
-								if [[ $paramter_13_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_13_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_13_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_13_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_13_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_13_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_13_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_13_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_13_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_14_name ]]; then
-								if [[ $paramter_14_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_14_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_14_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_14_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_14_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_14_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_14_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_14_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_14_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_15_name ]]; then
-								if [[ $paramter_15_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_15_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_15_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_15_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_15_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_15_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_15_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_15_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_15_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_16_name ]]; then
-								if [[ $paramter_16_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_16_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_16_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_16_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_16_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_16_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_16_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_16_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_16_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_17_name ]]; then
-								if [[ $paramter_17_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_17_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_17_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_17_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_17_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_17_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_17_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_17_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_17_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_18_name ]]; then
-								if [[ $paramter_18_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_18_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_18_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_18_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_18_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_18_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_18_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_18_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_18_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_19_name ]]; then
-								if [[ $paramter_19_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_19_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_19_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_19_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_19_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_19_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_19_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_19_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_19_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
-							
-							if [[ $disk_SMART_attribute_name == $paramter_20_name ]]; then
-								if [[ $paramter_20_type == ">" ]]; then
-									if [ $disk_SMART_attribute_raw -gt $paramter_20_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_20_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
-									fi
-								elif [[ $paramter_20_type == "=" ]]; then
-									if [ $disk_SMART_attribute_raw -eq $paramter_20_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_20_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
-									fi
-								elif [[ $paramter_20_type == "<" ]]; then
-									if [ $disk_SMART_attribute_raw -lt $paramter_20_notification_threshold ]; then
-										send_mail $disk_SMART_attribute_name $paramter_20_notification_threshold $disk_path $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
-									fi
-								fi
-							fi
+							done
 						fi
 					else
 						echo "could not send notification email as MailPlus Server is unavailable"
