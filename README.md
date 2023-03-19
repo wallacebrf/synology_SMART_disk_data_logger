@@ -202,7 +202,7 @@ NOTE: if firewall rules are enabled on the Synology system, the SNMP service por
 
 ### Configuration of required settings
 
-<img src="https://raw.githubusercontent.com/wallacebrf/synology_SMART_disk_data_logger/main/Images/web-page-config.png" alt="1313">
+<img src="https://raw.githubusercontent.com/wallacebrf/synology_SMART_disk_data_logger/main/Images/web-page-config2.png" alt="1313">
 
 1. now that the files are where they need to be, using a browser go to the "SMART_server2_config.php" page. when the page loads for the first time, it will automatically create a "smart_logging_config.txt" in the config directory. the values will all be default values and must be configured. 
 2. ensure the script is enabled
