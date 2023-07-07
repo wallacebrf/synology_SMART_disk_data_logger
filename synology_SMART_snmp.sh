@@ -402,9 +402,9 @@ if [ -r $config_file_location/$config_file_name ]; then
 							if [[ $line == "SYNOLOGY-SMART-MIB::diskSMARTAttrThreshold.$id2 "* ]]; then
 								disk_SMART_attribute_threshold=${line/"SYNOLOGY-SMART-MIB::diskSMARTAttrThreshold."$id2" = INTEGER: "/};
 							fi
-							if [[ $line == "SYNOLOGY-SMART-MIB::diskSMARTAttrRaw.$id2 "* ]]; then
-								disk_SMART_attribute_raw=${line/"SYNOLOGY-SMART-MIB::diskSMARTAttrRaw."$id2" = INTEGER: "/};
-							fi	
+							if [[ $line == "SYNOLOGY-SMART-MIB::diskSMARTAttrRaw64.$id2 "* ]]; then
+								disk_SMART_attribute_raw=${line/"SYNOLOGY-SMART-MIB::diskSMARTAttrRaw64."$id2" = Counter64: "/};
+							fi		
 							if [[ $line == "SYNOLOGY-SMART-MIB::diskSMARTAttrStatus.$id2 "* ]]; then
 								disk_SMART_attribute_status=${line/"SYNOLOGY-SMART-MIB::diskSMARTAttrStatus."$id2" = STRING: "/};
 								if [[ $disk_SMART_attribute_status == "\"OK\"" ]]; then
