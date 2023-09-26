@@ -1,5 +1,5 @@
 #!/bin/bash
-#version 4.4 dated 7/7/2023
+#version 4.5 dated 10/26/2023
 #By Brian Wallace
 
 #This script pulls various information from the Synology NAS
@@ -20,6 +20,7 @@
 #4.) verify script behavior when config file is unavailable....................................................................... VERIFIED 3/18/2023
 #5.) verify script behavior when config file has wrong number of arguments........................................................ VERIFIED 3/18/2023
 #6.) Verify emails are sent when SMART parameters are above, below, or equal to their configured threshold........................ VERIFIED 3/18/2023
+#7.) Verify emails are sent when NVME parameters are above, below, or equal to their configured threshold........................ VERIFIED 10/26/2023
 
 
 #suggest to install the script in Synology web directory on volume1 at /volume1/web/logging/
@@ -478,7 +479,81 @@ if [ -r $config_file_location/$config_file_name ]; then
 		"
 			done
 		
-			
+			#get NVME drive details. as this is not available from SNMP, we will pull it using the nvme command. 
+			nvme_number_installed=$(nvme list | wc -l)
+			nvme_number_installed=$(( ( $nvme_number_installed - 2 ) / 2 )) #remove the first two lines as they are just table header information, and two entries are listed per drive
+			if [[ $debug == 1 ]]; then
+				echo "nvme_number_installed is $nvme_number_installed"
+			fi
+
+			if [[ $nvme_number_installed < 1 ]]; then
+				echo "no NVME drives installed, skipping NVME capture"
+			else
+				for (( c=0; c<$nvme_number_installed; c++ ))
+				do 
+					post_url=$post_url"$measurement,nas_name=$nas_name,disk_path=/dev/nvme${c}n1 "
+					line_num=0
+					while IFS= read -r line; do
+										
+						if [[ $line_num != 0 ]]; then
+							disk_SMART_attribute_name=$(echo ${line%:*} | xargs)
+							
+							secondString="_"
+							disk_SMART_attribute_name=${disk_SMART_attribute_name//\ /$secondString} #replace all white space with underscore
+							
+							
+							disk_SMART_attribute_raw=$(echo ${line##*:} | xargs)
+					
+							#cleanup the data to make all returned values numerical numbers and not strings
+							secondString=""
+							disk_SMART_attribute_raw=${disk_SMART_attribute_raw//\ /$secondString} #remove all white space
+							disk_SMART_attribute_raw=${disk_SMART_attribute_raw//\,/$secondString} #remove the commas from numerical values so it is just a plain number and not a string
+							disk_SMART_attribute_raw=${disk_SMART_attribute_raw//\%/$secondString} #remove the % symbol from items containing it so it is just a plain number and not a string
+							disk_SMART_attribute_raw=${disk_SMART_attribute_raw//\C/$secondString} #remove the "C" from temperature values so it is just a plain number and not a string
+					
+							post_url=$post_url"$disk_SMART_attribute_name=$disk_SMART_attribute_raw,"
+							
+							
+							#are email notifications enabled?
+							if [[ $sendmail_installed == 1 ]]; then
+								if [[ $enable_email_notifications == 1 ]]; then
+									for attribute_counter in "${!paramter_name[@]}" 
+									do
+										if [[ $disk_SMART_attribute_name == ${paramter_name[$attribute_counter]} ]]; then
+											if [[ ${paramter_type[$attribute_counter]} == ">" ]]; then
+												if [ $disk_SMART_attribute_raw -gt ${paramter_notification_threshold[$attribute_counter]} ]; then
+													send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} "/dev/nvme${c}n1" $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "has exceeded"
+													#echo "$disk_SMART_attribute_name on \"/dev/nvme${c}n1\" is greater than ${paramter_notification_threshold[$attribute_counter]}, it is reporting $disk_SMART_attribute_raw"
+												fi
+											elif [[ ${paramter_type[$attribute_counter]} == "=" ]]; then
+												if [ $disk_SMART_attribute_raw -eq ${paramter_notification_threshold[$attribute_counter]} ]; then
+													send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} "/dev/nvme${c}n1" $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is equal to"
+													#echo "$disk_SMART_attribute_name on \"/dev/nvme${c}n1\" is equal to ${paramter_notification_threshold[$attribute_counter]}, it is reporting $disk_SMART_attribute_raw"
+												fi
+											elif [[ ${paramter_type[$attribute_counter]} == "<" ]]; then
+												if [ $disk_SMART_attribute_raw -lt ${paramter_notification_threshold[$attribute_counter]} ]; then
+													send_mail $disk_SMART_attribute_name ${paramter_notification_threshold[$attribute_counter]} "/dev/nvme${c}n1" $nas_name $disk_SMART_attribute_raw $email_contents $from_email_address $email_address "is less than"
+													#echo "$disk_SMART_attribute_name on \"/dev/nvme${c}n1\" is less than ${paramter_notification_threshold[$attribute_counter]}, it is reporting $disk_SMART_attribute_raw"
+												fi
+											fi
+										fi
+									done
+								fi
+							else
+								echo "could not send notification email as MailPlus Server is unavailable"
+							fi
+						fi
+						
+						let line_num=line_num+1
+					done < <(nvme smart-log /dev/nvme${c}n1)
+					
+					let line_num=line_num-1
+					post_url=$post_url"num_paramters=$line_num
+
+"
+				done
+			fi
+   
 			#Post to influxdb
 			if [[ $influx_db_version == 1 ]]; then
 				echo "saving using influx version 1"
