@@ -11,7 +11,7 @@
 <h3 align="center">Synology Disk SMART Attribute Logger to InfluxDB</h3>
 
   <p align="center">
-    This project is comprised of a shell script that runs as often as desired (I recommend every 12 hours) collecting data from DSM pertaining to the SMART attributes for all drives installed within the system and placing it into InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. 
+    This project is comprised of a shell script that runs as often as desired (I recommend every 12 hours) collecting data from DSM pertaining to the SMART attributes for all drives installed within the system and placing it into InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. This script also now supports NVME disk SMART data collection if NVME drives are installed within the system. 
     <br />
     <a href="https://github.com/wallacebrf/synology_SMART_disk_data_logger"><strong>Explore the docs »</strong></a>
     <br />
@@ -58,6 +58,8 @@
 <img src="https://raw.githubusercontent.com/wallacebrf/synology_SMART_disk_data_logger/main/Images/SMART_dashboard.webp" alt="1313">
 
 The script collects SNMP based Disk SMART details from a Synology NAS using SNMP version 3 (much more secure than version 2) and saves them to InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. 
+
+The script also collects NVME drive SMART data if NVME disks are installed. NVME data is not available over SNMP in Synology DSM, so the data in this script is collected from the "nvme" command. 
 
 <!-- GETTING STARTED -->
 ## Getting Started
