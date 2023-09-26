@@ -57,34 +57,31 @@
 
 <img src="https://raw.githubusercontent.com/wallacebrf/synology_SMART_disk_data_logger/main/Images/SMART_dashboard.webp" alt="1313">
 
-The script collects SNMP based Disk SMART details from a Synology NAS using SNMP version 3 (much more secure than version 2) and saves them to InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. 
+The script collects Disk SMART details for SATA drives from a Synology NAS using SNMP version 3 (much more secure than version 2) and saves data to InfluxDB. This script will also send email notifications for up to 20x drive SMART parameters that are either above, equal to, or below a configurable value in a basic web interface. 
 
-The script also collects NVME drive SMART data if NVME disks are installed. NVME data is not available over SNMP in Synology DSM, so the data in this script is collected from the "nvme" command. 
+The script also collects NVME drive SMART data if NVME disks are installed. NVME data is not available over SNMP in Synology DSM, so the data is collected from the "nvme" command. 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This project is written around a Synology NAS and their DSM specific SNMP OIDs and MIBs. 
+This project is written around a Synology NAS and their DSM specific SNMP OIDs and MIBs. This script will not function on a different vendor system. 
 
 ### Prerequisites
 
-1. this script requires the installation of Synology MailPlus server package in package center in order to send emails. If it is not installed, the script will still work it just will not be able to send emails. 
+1. This script requires the installation of the Synology MailPlus server package in order to send emails. If the package is not installed, the script will operate normally with the exception of being unable to send notification emails. 
 
-the mail plus server must be properly configured to relay received messages to another email account. NOTE: this read-me DOES NOT explain how to properly configure mail plus server. 
+The mail plus server package must be properly configured to relay notification emails. NOTE: this read-me DOES NOT explain how to properly configure mail plus server. 
 
-2. this script only supports SNMP V3. This is because lower versions are less secure 
-	
-		SNMP must be enabled on the host NAS for the script to gather the NAS NAME
-		the SNMP settings for the NAS can all be entered into the web administration page
+2. This script only supports SNMP V3. This is because lower versions are less secure. SNMP must be enabled on the host NAS (details below).
 		
-3. This script can be run through Synology Task Scheduler. Recommended frequency is every 12 hours
+3. This script can be run through Synology Task Scheduler with a recommended operating frequency is every 12 hours. Details on configuring task schedule are below. 
 		
-4. This project requires a PHP server to be installed and configured to allow the web-administrative page to be available. This read-me does explain how to configure the needed read/write permissions, but does not otherwise explain how to setup a website on a Synology NAS through web-station
+4. This project requires a PHP server to be installed and configured through the web-station package to allow the web-administrative page to be available. This read-me does explain how to configure the needed read/write permissions of the web-station "http" user, but does not otherwise explain how to setup a website on a Synology NAS through web-station. 
 
 
 ### Installation
 
-Note: this assumes InfluxDB version 2.0 or higher and Grafana are already installed and properly configured. This read-me does NOT explain how to install and configure InfluxDB nor Grafana. 
+Note: This README assumes InfluxDB version 2.0 or higher and Grafana are already installed and properly configured. This read-me does NOT explain how to install and configure InfluxDB nor Grafana. 
 
 1. Create the following directories on the NAS
 
@@ -94,9 +91,9 @@ Note: this assumes InfluxDB version 2.0 or higher and Grafana are already instal
 3. %PHP_Server_Root%/logging/notifications
 ```
 
-note: ```%PHP_Server_Root%``` is what ever shared folder location the PHP web server root directory is configured to be.
+note: ```%PHP_Server_Root%``` is what ever shared folder location the PHP web server root directory is configured to be within web station.
 
-2. Place the ```functions.php``` file in the root of the PHP web server running on the NAS
+2. Place the ```functions.php``` file in the root of the PHP web server running on the NAS (typically this will be ```/volume1/web```)
 
 3. Place the ```synology_SMART_snmp.sh``` file in the ```/logging``` directory
 
@@ -121,10 +118,16 @@ from_email_address="email@email.com"
 #########################################################
 ```
 
-for the variables above, ensure the "/volume1/web" is the correct location for the root of the PHP web server, correct as required. 
-For the email settings, configure the email address that will be notified and the email address the "from" will show. 
+for ```config_file_location``` ensure the path is the same as the directory ```%PHP_Server_Root%/config``` that was previously created. 
 
-3. delete the the following lines as those are for my personal use as i use this script for several units that have slightly different configurations	
+for ```email_contents``` ensure the path is the same as the directory ```%PHP_Server_Root%/logging/notifications``` that was previously created. 
+
+for ```lock_file_location``` ensure the path is the same as the directory ```%PHP_Server_Root%/logging/notifications``` that was previously created. 
+
+For the ```EMAIL SETTINGS USED IF CONFIGURATION FILE IS UNAVAILABLE``` settings, configure the email address details as desired.
+
+
+3. Delete the the following lines as those are for my personal use as I use this script for several units that have slightly different configurations	
 ```
 #for my personal use as i have multiple Synology systems, these lines can be deleted by other users
 ######################################################################################
@@ -162,21 +165,21 @@ $page_title="Server2 SMART Logging and Notification Configuration Settings";
 
 ENSURE THE VALUES FOR ```$config_file``` ARE THE SAME AS THAT CONFIGURED IN [Configuration "synology_SMART_snmp.sh"] FOR THE VARIABLE ```config_file_location```
 
-the ```form_submittal_destination``` can either be set to the name of the "SMART_server2_config.php" file itself, or if the "SMART_server2_config.php" file is embedded in another PHP file using an "include_once" then the location should be to that php file
+The ```form_submittal_destination``` can either be set to the name of the "SMART_server2_config.php" file itself if accessing the php file directly in the browser address bar, or if the "SMART_server2_config.php" file is embedded in another PHP file using an "include_once" then the location should be to that php file as the included example currently shows. 
 
-the variable ```page_title``` controls the title of the page when viewing it in a browser. 
+The variable ```page_title``` controls the title of the page when viewing it in a browser. 
 
-the SMART_server2_config.php file by default automatically redirects from HTTP to HTTPS. if this behavior is not required or desired, change the ```use_login_sessions``` to false. 
+The SMART_server2_config.php file by default automatically redirects from HTTP to HTTPS. If this behavior is not required or desired, change the ```use_login_sessions``` to false. the setting should only be set to true if using active user log-in sessions in your PHP web site for stronger access control. 
 
 ### Configuration of Synology web server "http" user permissions
 
-by default the Synology user "http" that web station uses does not have write permissions to the "web" file share. 
+By default the Synology user "http" utilized by web station does not have write permissions to the "web" file share. Note, in this example, it is assumed the "web" file share is the directory web station will use for its ```%PHP_Server_Root%```. If a different shared folder is used, adjust accordingly. 
 
-1. go to Control Panel -> User & Group -> "Group" tab
-2. click on the "http" user and press the "edit" button
-3. go to the "permissions" tab
-4. scroll down the list of shared folders to find "web" and click on the right checkbox under "customize" 
-5. check ALL boxes and click "done"
+1. Go to Control Panel -> User & Group -> "Group" tab
+2. Click on the "http" user and press the "edit" button
+3. Go to the "permissions" tab
+4. Scroll down the list of shared folders to find "web" and click on the right checkbox under "customize" 
+5. Check ALL boxes and click "done"
 6. Verify the window indicates the "http" user group has "Full Control" and click the checkbox at the bottom "Apply to this folder, sub folders and files" and click "Save"
 
 <img src="https://raw.githubusercontent.com/wallacebrf/synology_snmp/main/Images/http_user1.png" alt="1313">
@@ -185,19 +188,19 @@ by default the Synology user "http" that web station uses does not have write pe
 
 ### Configuration of Synology SNMP settings
 
-by default Synology DSM does not have SNMP settings enabled. This script requires them to be enabled. 
+By default Synology DSM does not have SNMP settings enabled. This script requires them to be enabled. 
 
 1. Control Panel -> Terminal & SNMP -> "SNMP" tab
-2. check the box "Enable SNMP Service"
+2. Check the box "Enable SNMP Service"
 3. Leave the following box UNCHECKED "SNMPv1, SNMPv2c service" as we only want SNMP version 3
-4. check the box "SNMPv3 service"
-5. enter a "Username" without spaces, choose a "protocol" and "password"
-6. ensure the "Enable SNMP privacy" is checked and enter a desired protocol and a password. it may be the same password used above or can be a different password
-7. click apply to save the settings
+4. Check the box "SNMPv3 service"
+5. Enter a "Username" without spaces, choose a "protocol" and "password"
+6. Ensure the "Enable SNMP privacy" is checked and enter a desired protocol and a password. it may be the same password used above or can be a different password
+7. Click apply to save the settings
 
-document all of the protocols, passwords and user information entered in Synology Control panel as this same information will need to entered into the configuration web page in the next steps
+Document all of the protocols, passwords and user information entered in Synology Control panel as this same information will need to entered into the configuration web page in future steps of this REDAME
 
-NOTE: if firewall rules are enabled on the Synology system, the SNMP service port may need to be opened if this script is not running on this particular physical server. This set of instructions will not detail how to configure firewall rules. 
+NOTE: If firewall rules are enabled on the Synology system, the SNMP service port may need to be opened if this script is not running on this particular physical server. This set of instructions will not detail how to configure firewall rules. 
 
 <img src="https://raw.githubusercontent.com/wallacebrf/synology_snmp/main/Images/snmp1.png" alt="1313">
 
@@ -206,24 +209,24 @@ NOTE: if firewall rules are enabled on the Synology system, the SNMP service por
 
 <img src="https://raw.githubusercontent.com/wallacebrf/synology_SMART_disk_data_logger/main/Images/web-page-config2.png" alt="1313">
 
-1. now that the files are where they need to be, using a browser go to the "SMART_server2_config.php" page. when the page loads for the first time, it will automatically create a "smart_logging_config.txt" in the config directory. the values will all be default values and must be configured. 
-2. ensure the script is enabled
+1. Now that the files are where they need to be, using a browser go to the "SMART_server2_config.php" page for example ```http://<NAS-IP>/config/SMART_server2_config.php```. When the page loads for the first time, it will automatically create a "smart_logging_config.txt" in the config directory created previously. The values will all be default values and must be configured or the script will not operate. 
+2. Ensure the script is enabled
 3. Leave "Capture Interval [Seconds]" set to 60 seconds
-4. configure email settings, the destination email address, the from email address
-5. enter the details for influxDB.
+4. Configure email settings, the destination email address, the from email address
+5. Enter the details for influxDB.
 --> for InfluxDB 2, the "database" will be the randomly generated string identifying the data bucket, for example "a6878dc5c298c712"
 --> for InfluxDB 2, the "User Name of Influx DB" can be left as the default value as this is NOT required for InfluxDB version 2 and higher. 
 --> for InfluxDB 2, the "Password" is the API access key / Authorization Token. 
-6. configure the SNMP settings. these settings must match the settings the NAS has been configured to use as configured previously. 
-7. configure the SMART notification settings. NOTE: these settings will need to be changed after the script is run for the first time. the reason for this is every drive has different SMART parameters and or parameter names. The parameter names entered into the configuration page will need to match what is gathered from your system. 
+6. Configure the SNMP settings. These settings must match the settings the NAS has been configured to use as configured previously. 
+7. Configure the SMART notification settings. NOTE: these settings will need to be changed after the script is run for the first time. This is due to every drive using different SMART parameter names. The parameter names entered into the configuration page will need to match what is gathered from your system. 
 
 ### Test running the ```synology_SMART_disk_data_logger.sh``` file for the first time
 
 Now that the required configuration files are made using the web-interface, we can ensure the bash script operates correctly. 
 
-1. open the ```synology_SMART_disk_data_logger.sh``` file for editing. find the line ```debug=0``` and change the zero to a one ```debug=1``` to enable verbose output to assist with debugging
-2. open SSH and navigate to where the ```synology_SMART_disk_data_logger.sh``` file is located. type the following command ```bash synology_SMART_disk_data_logger.sh``` and press enter
-3. the script will run and load all of the configuration settings. in debug mode it will print out details of your system. It will indicate if MailPlus is installed, and will display the values of each drive's parameters. Here is the output from one of my systems with 9x drives installed Data for only one drive is shown for brevity.
+1. Open the ```synology_SMART_disk_data_logger.sh``` file for editing. Find the line ```debug=0``` and change to ```debug=1``` to enable verbose output to assist with debugging
+2. Open SSH and navigate to where the ```synology_SMART_disk_data_logger.sh``` file is located. Type the following command ```bash synology_SMART_disk_data_logger.sh``` and press enter
+3. The script will run and load all of the configuration settings. In debug mode it will print out details of your system. It will indicate if MailPlus is installed, and will display the values of each drive's parameters. Here is the output from one of my systems with 9x drives installed. NOTE: Data for only one drive is shown for brevity.
 ```
 MailPlus Server is installed and running
 Synology SNTP settings are not Blank
@@ -441,9 +444,9 @@ synology_SMART_status2,nas_name=Server2,disk_path=/dev/sata1,smart_attribute=**R
 Capture #1 complete
 ```
 
-NOTE: if ```MailPlus Server``` is not installed, the script will give warnings that it is not installed. if this is acceptable then ignore the warnings
+NOTE: if ```MailPlus Server``` is not installed, the script will give warnings that it is not installed. If this is acceptable then ignore the warnings
 
-4. at the end of the script, it will output the results from InfluxDB. ensure you do NOT see any instances of the following
+4. At the end of the script, it will output the results from InfluxDB. Ensure you do NOT see any instances of the following
 
 ```{"code":"invalid","message":"unable to parse```
 
@@ -455,11 +458,11 @@ or
 
 ```invalid number``` 
 
-these errors indicate that InfluxDB cannot intake the data properly and debugging is needed. ensure no other errors were listed in the script output and ensure all values of the configuration parameters displayed in debug mode were correct.
+These errors indicate that InfluxDB cannot intake the data properly and debugging is needed. Ensure no other errors were listed in the script output and ensure all values of the configuration parameters displayed in debug mode were correct.
 
-7.) after it is confirmed the script is working without errors and that it is confirmed that InfluxDB is receiving the data correctly, change the ```debug=1``` back to a ```debug=0``` 
+7.) After it is confirmed the script is working without errors and that it is confirmed that InfluxDB is receiving the data correctly, change the ```debug=1``` back to a ```debug=0``` 
 
-8.) now proceed with creating a scheduled task to run the script as often as desired. I recommend every 12 hours. 
+8.) Now proceed with creating a scheduled task to run the script as often as desired. I recommend every 12 hours. 
 
 
 ### Configuration of Task Scheduler 
@@ -470,14 +473,14 @@ these errors indicate that InfluxDB cannot intake the data properly and debuggin
 4. Click the "Schedule" tab at the top of the window
 5. Select "Run on the following days" and choose "Daily"
 6. Under Time, set "First run time" to "11" and "00"
-7. under "Frequency" select every 12 hours
-8. under last run time select "23:00"
-9. go to the "Task Settings" tab
-10. leave "Send run details by email" un-checked
+7. Under "Frequency" select every 12 hours
+8. Under last run time select "23:00"
+9. Go to the "Task Settings" tab
+10. Leave "Send run details by email" un-checked
 11. Under "Run command" enter "bash /volume1/web/logging/synology_SMART_snmp.sh" NOTE: ensure the ```/volume1/web``` is the same as your PHP server root directory
-12. click "ok" in the bottom right
-13. find the newly created task in your list, right click and select "run". when a confirmation window pops up, choose "yes"
-14. verify the script ran correctly by going into Influxdb and viewing the collected data and verify fresh data was just added. 
+12. Click "ok" in the bottom right
+13. Find the newly created task in your list, right click and select "run". when a confirmation window pops up, choose "yes"
+14. Verify the script ran correctly by going into Influxdb and viewing the collected data and verify fresh data was just added. 
 
 
 ### Grafana Dashboards
