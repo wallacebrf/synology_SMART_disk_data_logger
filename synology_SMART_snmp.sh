@@ -1,5 +1,5 @@
 #!/bin/bash
-#version 4.5 dated 10/26/2023
+#version 4.5 dated 9/26/2023
 #By Brian Wallace
 
 #This script pulls various information from the Synology NAS
