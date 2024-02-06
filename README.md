@@ -11,7 +11,35 @@
 <h3 align="center">Synology Disk SMART Attribute Logger to InfluxDB</h3>
 
   <p align="center">
-    This project is comprised of a shell script that runs as often as desired (I recommend every 12 hours) collecting data from DSM pertaining to the SMART attributes for all drives installed within the system and placing it into InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. This script also now supports NVME disk SMART data collection if NVME drives are installed within the system. 
+
+	!!!NOTICE!!!   !!!NOTICE!!!    !!!NOTICE!!!
+ 	This script has now been replaced with a MUCH simplier but also MUCH faster script using "smartctl" instead of SNMP. It can be found here: https://github.com/wallacebrf/SMART-to-InfluxDB-Logger
+  	This script using SNMP took 1 minute and 22 seconds to execute on a Synology NAS with 9x HDDs and no NVME drives
+   ```
+	root@Server_NVR:/volume1/web/logging# time bash synology_SMART_snmp.sh
+	Capturing 1 times
+	no NVME drives installed, skipping NVME capture
+	Capture #1 complete
+	
+	real    1m22.314s
+	user    0m30.592s
+	sys     0m9.620s
+```
+	However the new script running on the same system took slightly more than 2 seconds to execute on the same system
+
+ 	the new script is a drop in replacement for this SNMP script as it uses the same config file. Please replace the .sh file and the .php files used by this script with the ones for the new script. 
+
+```
+root@Server_NVR:/volume1/web/logging# time bash smart.sh
+no NVME drives installed, skipping NVME capture
+
+real    0m2.218s
+user    0m0.960s
+sys     0m0.195s
+```
+    
+	  
+   This project is comprised of a shell script that runs as often as desired (I recommend every 12 hours) collecting data from DSM pertaining to the SMART attributes for all drives installed within the system and placing it into InfluxDB. This script will also send email notifications of up to 20x drive SMART parameters are either above, equal to, or below a value of your choice. This script also now supports NVME disk SMART data collection if NVME drives are installed within the system. 
     <br />
     <a href="https://github.com/wallacebrf/synology_SMART_disk_data_logger"><strong>Explore the docs »</strong></a>
     <br />
